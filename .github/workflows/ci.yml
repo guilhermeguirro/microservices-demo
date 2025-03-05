@@ -1,0 +1,95 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest bandit
+          pip install -r service_a/requirements.txt
+          pip install -r service_b/requirements.txt
+      
+      - name: Lint with flake8
+        run: |
+          flake8 service_a --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 service_b --count --select=E9,F63,F7,F82 --show-source --statistics
+      
+      - name: Run security checks with Bandit
+        run: |
+          bandit -r service_a -f json -o bandit-results-service-a.json || true
+          bandit -r service_b -f json -o bandit-results-service-b.json || true
+      
+      - name: Run tests
+        run: |
+          pytest service_a/tests/
+          pytest service_b/tests/
+
+  build-and-scan:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker images
+        run: |
+          docker build -t service-a:test ./service_a
+          docker build -t service-b:test ./service_b
+      
+      - name: Scan service-a image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: service-a:test
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+      
+      - name: Scan service-b image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: service-b:test
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+  validate-helm:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "latest"
+      
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.1
+      
+      - name: Run chart-testing (lint)
+        run: ct lint --target-branch main --charts ./helm/charts
+      
+      - name: Run helm lint
+        run: |
+          helm lint ./helm/charts/service-a
+          helm lint ./helm/charts/service-b
+      
+      - name: Validate Helm templates
+        run: |
+          helm template ./helm/charts/service-a
+          helm template ./helm/charts/service-b

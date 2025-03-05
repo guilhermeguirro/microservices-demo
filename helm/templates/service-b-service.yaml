@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.serviceB.name }}
+  labels:
+    app: {{ .Values.serviceB.name }}
+spec:
+  ports:
+    - port: {{ .Values.serviceB.port }}
+      targetPort: {{ .Values.serviceB.port }}
+      protocol: TCP
+  selector:
+    app: {{ .Values.serviceB.name }} 

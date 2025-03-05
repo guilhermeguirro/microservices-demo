@@ -1,0 +1,56 @@
+serviceA:
+  name: service-a
+  image:
+    repository: service-a
+    tag: latest
+    pullPolicy: Never
+  port: 8011
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  livenessProbe:
+    httpGet:
+      path: /ping
+      port: 8011
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /ping
+      port: 8011
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+serviceB:
+  name: service-b
+  image:
+    repository: service-b
+    tag: latest
+    pullPolicy: Never
+  port: 8012
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  livenessProbe:
+    httpGet:
+      path: /ping_service_a
+      port: 8012
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /ping_service_a
+      port: 8012
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  env:
+    - name: SERVICE_A_URL
+      value: "http://service-a:8011" 

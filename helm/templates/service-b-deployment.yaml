@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.serviceB.name }}
+  labels:
+    app: {{ .Values.serviceB.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceB.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.serviceB.name }}
+    spec:
+      containers:
+      - name: {{ .Values.serviceB.name }}
+        image: "{{ .Values.serviceB.image.repository }}:{{ .Values.serviceB.image.tag }}"
+        imagePullPolicy: {{ .Values.serviceB.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.serviceB.port }}
+        env:
+        {{- if .Values.serviceB.env }}
+        {{- range .Values.serviceB.env }}
+        - name: {{ .name }}
+          value: {{ .value }}
+        {{- end }}
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.serviceB.livenessProbe.httpGet.path }}
+            port: {{ .Values.serviceB.livenessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.serviceB.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.serviceB.livenessProbe.periodSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.serviceB.readinessProbe.httpGet.path }}
+            port: {{ .Values.serviceB.readinessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.serviceB.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.serviceB.readinessProbe.periodSeconds }}
+        resources:
+          limits:
+            cpu: {{ .Values.serviceB.resources.limits.cpu }}
+            memory: {{ .Values.serviceB.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.serviceB.resources.requests.cpu }}
+            memory: {{ .Values.serviceB.resources.requests.memory }} 

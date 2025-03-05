@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Helm
+*.tgz
+
+# OS
+.DS_Store
+Thumbs.db

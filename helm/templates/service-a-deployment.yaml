@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.serviceA.name }}
+  labels:
+    app: {{ .Values.serviceA.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceA.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.serviceA.name }}
+    spec:
+      containers:
+      - name: {{ .Values.serviceA.name }}
+        image: "{{ .Values.serviceA.image.repository }}:{{ .Values.serviceA.image.tag }}"
+        imagePullPolicy: {{ .Values.serviceA.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.serviceA.port }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.serviceA.livenessProbe.httpGet.path }}
+            port: {{ .Values.serviceA.livenessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.serviceA.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.serviceA.livenessProbe.periodSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.serviceA.readinessProbe.httpGet.path }}
+            port: {{ .Values.serviceA.readinessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.serviceA.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.serviceA.readinessProbe.periodSeconds }}
+        resources:
+          limits:
+            cpu: {{ .Values.serviceA.resources.limits.cpu }}
+            memory: {{ .Values.serviceA.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.serviceA.resources.requests.cpu }}
+            memory: {{ .Values.serviceA.resources.requests.memory }} 
