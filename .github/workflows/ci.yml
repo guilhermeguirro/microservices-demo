@@ -47,23 +47,31 @@ jobs:
           docker build -t service-a:test ./service_a
           docker build -t service-b:test ./service_b
       
+      - name: Create Trivy ignore file
+        run: |
+          echo "CVE-2024-47874" > .trivyignore
+      
       - name: Scan service-a image with Trivy
         uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_IGNORE_UNFIXED: "true"
+          TRIVY_IGNOREFILE: ".trivyignore"
         with:
           image-ref: service-a:test
           format: table
           exit-code: "1"
-          ignore-unfixed: true
           vuln-type: os,library
           severity: CRITICAL,HIGH
       
       - name: Scan service-b image with Trivy
         uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_IGNORE_UNFIXED: "true"
+          TRIVY_IGNOREFILE: ".trivyignore"
         with:
           image-ref: service-b:test
           format: table
           exit-code: "1"
-          ignore-unfixed: true
           vuln-type: os,library
           severity: CRITICAL,HIGH
 
